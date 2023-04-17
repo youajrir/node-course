@@ -1,33 +1,12 @@
-const fs = require('fs')
-
-const addStudent = (name) => {
-    const existingStudents = loadStudents()
-
-    const duplicatedStudent = existingStudents.find((name) => existingStudents.name === name)
-    if (!duplicatedStudent) {
-        existingStudents.push({
-            name: name
-        })
-        save(existingStudents)
-    } else {
-        console.log('Student already exists')
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.Teacher = void 0;
+var Teacher = /** @class */ (function () {
+    function Teacher(name, age, specialty) {
+        this.name = name;
+        this.age = age;
+        this.specialty = specialty;
     }
-
-}
-
-const save = (value) => {
-    const dataJSON = JSON.stringify(value)
-    fs.writeFileSync('students.json', dataJSON)
-}
-
-const loadStudents = () => {
-    try {
-        const dataBuffer = fs.readFileSync('students.json')
-        const dataJSON = dataBuffer.toString()
-        return JSON.parse(dataJSON)
-    } catch (e) {
-        return []
-    }
-
-}
-module.exports = { addStudent: addStudent }
+    return Teacher;
+}());
+exports.Teacher = Teacher;
