@@ -1,11 +1,11 @@
-import { readFileSync, writeFileSync } from 'fs';
+import * as fs from 'fs';
 import { Student } from './models/Student';
 import { Note } from './models/Note';
 import { Subject } from './models/Subject';
 
 //add students
 function addStudents(student: Student) {
-    const studentsData = readFileSync('students.json');
+    const studentsData = fs.readFileSync('students.json');
     try {
         const students = JSON.parse(studentsData.toString());
         for (let i = 0; i < students.length; i++) {
@@ -15,7 +15,7 @@ function addStudents(student: Student) {
             }
         }
         students.push(student);
-        writeFileSync('students.json', JSON.stringify(students));
+        fs.writeFileSync('students.json', JSON.stringify(students));
     } catch (e) {
         console.log('Error parsing students.json:', e);
     }
@@ -23,7 +23,7 @@ function addStudents(student: Student) {
 
 //add subjects
 function addSubjects(subject: Subject) {
-    const subjectsData = readFileSync('subjects.json');
+    const subjectsData = fs.readFileSync('subjects.json');
     try {
         const subjects = JSON.parse(subjectsData.toString());
         for (let i = 0; i < subjects.length; i++) {
@@ -33,16 +33,16 @@ function addSubjects(subject: Subject) {
             }
         }
         subjects.push(subject);
-        writeFileSync('subjects.json', JSON.stringify(subjects));
+        fs.writeFileSync('subjects.json', JSON.stringify(subjects));
     } catch (e) {
         console.log('Error parsing subjects.json:', e);
     }
 }
 
-
+//add mark for student
 function addMarkForStudent(studentName: String, subjectName: String, grade: number) {
-    const studentsData = readFileSync('students.json');
-    const subjectsData = readFileSync('subjects.json');
+    const studentsData = fs.readFileSync('students.json');
+    const subjectsData = fs.readFileSync('subjects.json');
 
 
     const students = JSON.parse(studentsData.toString());
@@ -61,16 +61,23 @@ function addMarkForStudent(studentName: String, subjectName: String, grade: numb
             return
         }
 
-        const note = new Note(filteredSubject, grade)
-        filteredStudent.Note = note
+        const existingNoteIndex = filteredStudent.notes.findIndex((note: Note) => note.subject.subjectName === subjectName);
+        if (existingNoteIndex !== -1) {
+            const oldNote = filteredStudent.notes[existingNoteIndex];
+            filteredStudent.notes = filteredStudent.notes.filter((note: Note) => note !== oldNote);
+        }
 
-students.forEach((s:Student) => {
-    if (s.name===filteredStudent.name) {
-        s===filteredStudent
-    }
-});
+        const newNote = new Note(filteredSubject, grade);
+        filteredStudent.notes.push(newNote)
 
-writeFileSync('students.json', JSON.stringify(students));
+        const StudentsToKeep = students.filter((student: Student) => student.name !== studentName)
+        console.log(filteredStudent);
+
+        StudentsToKeep.push(filteredStudent)
+
+
+
+        fs.writeFileSync('students.json', JSON.stringify(StudentsToKeep));
 
     } catch (error) {
         console.log('error when trying to add grade to student' + error);
@@ -86,11 +93,14 @@ const mathNote: Note = { subject: math, grade: 9 };
 const historyNote: Note = { subject: history, grade: 8 };
 
 const yassin = new Student('yassin', 30, [mathNote, historyNote])
+const ahmed = new Student('ahmed', 31, [mathNote, historyNote])
+
 
 addStudents(yassin)
+addStudents(ahmed)
 addSubjects(math)
 addSubjects(history)
 
 addMarkForStudent('bilal', 'Math', 10)
 addMarkForStudent('yassin', 'biology', 10)
-addMarkForStudent('yassin', 'Math', 20)
+addMarkForStudent('yassin', 'History', 15)

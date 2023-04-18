@@ -1,5 +1,4 @@
 import { Note } from './Note';
-import { Subject } from './Subject';
 export class Student {
   name: string;
   age: number;
@@ -10,8 +9,3 @@ export class Student {
     this.age = age;
     this.notes = notes;
   }}
-
-  function addNoteForSubject(this: Student,subject: Subject, grade: number) {
-    const note = new Note(subject, grade);
-    this.notes.push(note);
-  }
