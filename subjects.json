@@ -1,1 +1,7 @@
-[{"subjectName":"Math"},{"subjectName":"History"}]
+[{
+    "subjectName": "Math"
+}, {
+    "subjectName": "History"
+}, {
+    "subjectName": "Sports"
+}]

@@ -1,106 +1,77 @@
-import * as fs from 'fs';
+import * as yargs from 'yargs';
 import { Student } from './models/Student';
-import { Note } from './models/Note';
 import { Subject } from './models/Subject';
+import { addStudents, addSubjects, addMarkForStudent } from './app';
 
 //add students
-function addStudents(student: Student) {
-    const studentsData = fs.readFileSync('students.json');
-    try {
-        const students = JSON.parse(studentsData.toString());
-        for (let i = 0; i < students.length; i++) {
-            if (students[i].name === student.name) {
-                console.log(`${student.name} already exists in students.json`);
-                return;
-            }
+// to run the command via terminal example : 
+// node index.js addStudent --name John --age 20
+
+yargs.command({
+    command: 'addStudent',
+    describe: 'Add a new student',
+    builder: {
+        name: {
+            describe: 'Student name',
+            demandOption: true,
+            type: 'string'
+        },
+        age: {
+            describe: 'Student age',
+            demandOption: true,
+            type: 'number'
         }
-        students.push(student);
-        fs.writeFileSync('students.json', JSON.stringify(students));
-    } catch (e) {
-        console.log('Error parsing students.json:', e);
+    },
+    handler(argv) {
+        const student = new Student(argv.name, argv.age, []);
+        addStudents(student);
     }
-}
+});
 
 //add subjects
-function addSubjects(subject: Subject) {
-    const subjectsData = fs.readFileSync('subjects.json');
-    try {
-        const subjects = JSON.parse(subjectsData.toString());
-        for (let i = 0; i < subjects.length; i++) {
-            if (subjects[i].subjectName === subject.subjectName) {
-                console.log(`${subject.subjectName} already exists in subjects.json`);
-                return;
-            }
+// to run the command via terminal example : 
+// node index.js addSubject --subjectName Sports
+yargs.command({
+    command: 'addSubject',
+    describe: 'Add a new subject',
+    builder: {
+        subjectName: {
+            describe: 'Subject name',
+            demandOption: true,
+            type: 'string'
         }
-        subjects.push(subject);
-        fs.writeFileSync('subjects.json', JSON.stringify(subjects));
-    } catch (e) {
-        console.log('Error parsing subjects.json:', e);
+    },
+    handler(argv) {
+        const subject = new Subject(argv.subjectName);
+        addSubjects(subject);
     }
-}
+});
 
 //add mark for student
-function addMarkForStudent(studentName: String, subjectName: String, grade: number) {
-    const studentsData = fs.readFileSync('students.json');
-    const subjectsData = fs.readFileSync('subjects.json');
-
-
-    const students = JSON.parse(studentsData.toString());
-    const subjects = JSON.parse(subjectsData.toString());
-
-    try {
-        const filteredStudent = students.find((s: Student) => s.name === studentName)
-        if (filteredStudent === undefined) {
-            console.log('student doesnt exist');
-            return
+// to run the command via terminal example : 
+// addMarkForStudent --studentName John --subjectName Sports --grade 17
+yargs.command({
+    command: 'addMarkForStudent',
+    describe: 'Add a new mark for a student',
+    builder: {
+        studentName: {
+            describe: 'Student name',
+            demandOption: true,
+            type: 'string'
+        },
+        subjectName: {
+            describe: 'Subject name',
+            demandOption: true,
+            type: 'string'
+        },
+        grade: {
+            describe: 'Grade',
+            demandOption: true,
+            type: 'number'
         }
-
-        const filteredSubject = subjects.find((s: Subject) => s.subjectName === subjectName)
-        if (filteredSubject === undefined) {
-            console.log('subject doesnt exist');
-            return
-        }
-
-        const existingNoteIndex = filteredStudent.notes.findIndex((note: Note) => note.subject.subjectName === subjectName);
-        if (existingNoteIndex !== -1) {
-            const oldNote = filteredStudent.notes[existingNoteIndex];
-            filteredStudent.notes = filteredStudent.notes.filter((note: Note) => note !== oldNote);
-        }
-
-        const newNote = new Note(filteredSubject, grade);
-        filteredStudent.notes.push(newNote)
-
-        const StudentsToKeep = students.filter((student: Student) => student.name !== studentName)
-        console.log(filteredStudent);
-
-        StudentsToKeep.push(filteredStudent)
-
-
-
-        fs.writeFileSync('students.json', JSON.stringify(StudentsToKeep));
-
-    } catch (error) {
-        console.log('error when trying to add grade to student' + error);
+    },
+    handler(argv) {
+        addMarkForStudent(argv.studentName, argv.subjectName, argv.grade);
     }
-
-
-}
-
-const math = new Subject('Math')
-const history = new Subject('History')
-
-const mathNote: Note = { subject: math, grade: 9 };
-const historyNote: Note = { subject: history, grade: 8 };
-
-const yassin = new Student('yassin', 30, [mathNote, historyNote])
-const ahmed = new Student('ahmed', 31, [mathNote, historyNote])
-
-
-addStudents(yassin)
-addStudents(ahmed)
-addSubjects(math)
-addSubjects(history)
-
-addMarkForStudent('bilal', 'Math', 10)
-addMarkForStudent('yassin', 'biology', 10)
-addMarkForStudent('yassin', 'History', 15)
+});
+yargs.parse();

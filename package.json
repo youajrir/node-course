@@ -18,9 +18,11 @@
   "homepage": "https://github.com/youajrir/node-course#readme",
   "dependencies": {
     "typescript": "^5.0.4",
-    "validator": "^13.9.0"
+    "validator": "^13.9.0",
+    "yargs": "^17.7.1"
   },
   "devDependencies": {
-    "@types/node": "^18.15.11"
+    "@types/node": "^18.15.11",
+    "@types/yargs": "^17.0.24"
   }
 }
