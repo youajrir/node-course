@@ -1,7 +1,7 @@
 import * as yargs from 'yargs';
 import { Student } from './models/Student';
 import { Subject } from './models/Subject';
-import { addStudents, addSubjects, addMarkForStudent, listMarks} from './app';
+import { addStudents, addSubjects, addMarkForStudent,updateSubject,deleteSubject, listMarks} from './app';
 
 //add students
 // to run the command via terminal example : 
@@ -91,6 +91,50 @@ yargs.command({
     },
     handler(argv) {
         listMarks(argv.name);
+    }
+});
+//update subjects
+// to run the command via terminal example : 
+// node index.js updateSubject --oldSubjectName Sports --newSubjectName Test
+yargs.command({
+    command: 'updateSubject',
+    describe: 'update existing subject',
+    builder: {
+        oldSubjectName: {
+            describe: 'Subject name',
+            demandOption: true,
+            type: 'string'
+        },
+        newSubjectName: {
+            describe: 'Subject name',
+            demandOption: true,
+            type: 'string'
+        }
+    },
+    handler(argv) {
+        listMarks(argv.name);
+        console.log('handler updateSubject start')
+        const oldsubject = new Subject(argv.oldSubjectName);
+        const newsubject = new Subject(argv.newSubjectName);
+        updateSubject(oldsubject,newsubject);
+    }
+});
+//delete subjects
+// to run the command via terminal example : 
+// node index.js deleteSubject --toDeleteSubjectName Test
+yargs.command({
+    command: 'deleteSubject',
+    describe: 'delete subject',
+    builder: {
+        toDeleteSubjectName: {
+            describe: 'Subject name',
+            demandOption: true,
+            type: 'string'
+        }
+    },
+    handler(argv) {
+        const subject = new Subject(argv.toDeleteSubjectName);
+        deleteSubject(subject);
     }
 });
 yargs.parse();

@@ -100,3 +100,39 @@ export function listMarks(studentName: string) {
 
     console.log(filteredStudent.notes)
 }
+//update subject
+export function updateSubject(oldSubject: Subject ,newSubject: Subject){
+    var subjectsData = fs.readFileSync('subjects.json');
+    try {
+        var subjects = JSON.parse(subjectsData.toString());
+        for (var i = 0; i < subjects.length; i++) {
+            if (subjects[i].subjectName === oldSubject.subjectName) {
+
+                subjects[i].subjectName=newSubject.subjectName;
+
+            }
+        }
+        fs.writeFileSync('subjects.json', JSON.stringify(subjects));
+    }
+    catch (e) {
+        console.log('Error parsing subjects.json:', e);
+    }
+
+ }
+ // delete subject
+ export function deleteSubject(subject: Subject){
+    var subjectsData = fs.readFileSync('subjects.json');
+    try {
+        var subjects = JSON.parse(subjectsData.toString());
+        for (var i = 0; i < subjects.length; i++) {
+            if (subjects[i].subjectName === subject.subjectName) {
+                console.log('key',i);  
+                subjects.splice(i,1);
+            }
+        }
+        fs.writeFileSync('subjects.json', JSON.stringify(subjects));
+    }
+    catch (e) {
+        console.log('Error parsing subjects.json:', e);
+    }
+ }
