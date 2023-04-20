@@ -1,7 +1,7 @@
 import * as yargs from 'yargs';
 import { Student } from './models/Student';
 import { Subject } from './models/Subject';
-import { addStudents, addSubjects, addMarkForStudent,updateSubject,deleteSubject, listMarks} from './app';
+import { addStudents, addSubjects, addMarkForStudent, updateSubject, deleteSubject, listMarks, deleteMark } from './app';
 
 //add students
 // to run the command via terminal example : 
@@ -93,6 +93,31 @@ yargs.command({
         listMarks(argv.name);
     }
 });
+
+//Delete mark
+// to run the command via terminal example : 
+// node index.js deleteMark --name John --subjectName Sports
+
+yargs.command({
+    command: 'deleteMark',
+    describe: 'Delete a mark of a student',
+    builder: {
+        name: {
+            describe: 'Student name',
+            demandOption: true,
+            type: 'string'
+        },
+        subjectName: {
+            describe: 'subject name',
+            demandOption: true,
+            type: 'string'
+        }
+    },
+    handler(argv) {
+        deleteMark(argv.name, argv.subjectName);
+    }
+});
+
 //update subjects
 // to run the command via terminal example : 
 // node index.js updateSubject --oldSubjectName Sports --newSubjectName Test
@@ -116,7 +141,7 @@ yargs.command({
         console.log('handler updateSubject start')
         const oldsubject = new Subject(argv.oldSubjectName);
         const newsubject = new Subject(argv.newSubjectName);
-        updateSubject(oldsubject,newsubject);
+        updateSubject(oldsubject, newsubject);
     }
 });
 //delete subjects

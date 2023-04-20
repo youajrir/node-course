@@ -100,15 +100,43 @@ export function listMarks(studentName: string) {
 
     console.log(filteredStudent.notes)
 }
+
+//Delete mark
+export function deleteMark(studentName: string, subjectName: string) {
+
+    const studentsData = fs.readFileSync('students.json');
+    const students = JSON.parse(studentsData.toString());
+    const StudentsToKeep = students.filter((student: Student) => student.name !== studentName)
+    const filteredStudent = students.find((s: Student) => s.name === studentName)
+    debugger
+    if (filteredStudent === undefined) {
+        console.log('student doesnt exist');
+        return
+    }
+
+    const newNotes: Note[] = [];
+    filteredStudent.notes.forEach((note: Note) => {
+        if (note.subject.subjectName !== subjectName) {
+            newNotes.push(note)
+        }
+    });
+
+    const updatedStudent = new Student(filteredStudent.name, filteredStudent.age, newNotes)
+
+    StudentsToKeep.push(updatedStudent);
+    fs.writeFileSync('students.json', JSON.stringify(StudentsToKeep));
+
+}
+
 //update subject
-export function updateSubject(oldSubject: Subject ,newSubject: Subject){
+export function updateSubject(oldSubject: Subject, newSubject: Subject) {
     var subjectsData = fs.readFileSync('subjects.json');
     try {
         var subjects = JSON.parse(subjectsData.toString());
         for (var i = 0; i < subjects.length; i++) {
             if (subjects[i].subjectName === oldSubject.subjectName) {
 
-                subjects[i].subjectName=newSubject.subjectName;
+                subjects[i].subjectName = newSubject.subjectName;
 
             }
         }
@@ -118,16 +146,16 @@ export function updateSubject(oldSubject: Subject ,newSubject: Subject){
         console.log('Error parsing subjects.json:', e);
     }
 
- }
- // delete subject
- export function deleteSubject(subject: Subject){
+}
+// delete subject
+export function deleteSubject(subject: Subject) {
     var subjectsData = fs.readFileSync('subjects.json');
     try {
         var subjects = JSON.parse(subjectsData.toString());
         for (var i = 0; i < subjects.length; i++) {
             if (subjects[i].subjectName === subject.subjectName) {
-                console.log('key',i);  
-                subjects.splice(i,1);
+                console.log('key', i);
+                subjects.splice(i, 1);
             }
         }
         fs.writeFileSync('subjects.json', JSON.stringify(subjects));
@@ -135,4 +163,4 @@ export function updateSubject(oldSubject: Subject ,newSubject: Subject){
     catch (e) {
         console.log('Error parsing subjects.json:', e);
     }
- }
+}
