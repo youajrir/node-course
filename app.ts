@@ -85,3 +85,18 @@ export function addMarkForStudent(studentName: String, subjectName: String, grad
 
 
 }
+
+
+//List marks
+export function listMarks(studentName: string) {
+    const studentsData = fs.readFileSync('students.json');
+    const students = JSON.parse(studentsData.toString());
+
+    const filteredStudent = students.find((s: Student) => s.name === studentName)
+    if (filteredStudent === undefined) {
+        console.log('student doesnt exist');
+        return
+    }
+
+    console.log(filteredStudent.notes)
+}

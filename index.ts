@@ -1,7 +1,7 @@
 import * as yargs from 'yargs';
 import { Student } from './models/Student';
 import { Subject } from './models/Subject';
-import { addStudents, addSubjects, addMarkForStudent } from './app';
+import { addStudents, addSubjects, addMarkForStudent, listMarks} from './app';
 
 //add students
 // to run the command via terminal example : 
@@ -72,6 +72,25 @@ yargs.command({
     },
     handler(argv) {
         addMarkForStudent(argv.studentName, argv.subjectName, argv.grade);
+    }
+});
+
+//List marks
+// to run the command via terminal example : 
+// node index.js listMarks --name John 
+
+yargs.command({
+    command: 'listMarks',
+    describe: 'List all marks of a student',
+    builder: {
+        name: {
+            describe: 'Student name',
+            demandOption: true,
+            type: 'string'
+        }
+    },
+    handler(argv) {
+        listMarks(argv.name);
     }
 });
 yargs.parse();
