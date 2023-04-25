@@ -164,3 +164,44 @@ export function deleteSubject(subject: Subject) {
         console.log('Error parsing subjects.json:', e);
     }
 }
+
+// List All Marks Of Each Subject
+export function viewAllMarksOfEachSubject() {
+    const studentsData = fs.readFileSync('students.json');
+    const subjectsData = fs.readFileSync('subjects.json');
+    const students = JSON.parse(studentsData.toString());
+    const subjects = JSON.parse(subjectsData.toString());
+  
+    subjects.forEach((subject: Subject) => {
+      console.log(`Marks for ${subject.subjectName}:`);
+      students.forEach((student: Student) => {
+        const note = student.notes.find((note: Note) => note.subject.subjectName === subject.subjectName);
+        if (note) {
+          console.log(`${student.name}: ${note.grade}`);
+        } else {
+          console.log(`${student.name}: N/A`);
+        }
+      });
+      console.log();
+    });
+  }
+  
+
+//Calculate the final mark
+// Calculate final mark for a student
+export function calculateFinalMark(studentName: string) {
+    const studentsData = fs.readFileSync('students.json');
+    const students = JSON.parse(studentsData.toString());
+  
+    const filteredStudent = students.find((s: Student) => s.name === studentName);
+    if (filteredStudent === undefined) {
+      console.log('Student does not exist');
+      return;
+    }
+  
+    const notes = filteredStudent.notes;
+    const totalMark = notes.reduce((acc : number, note:Note) => acc + note.grade, 0);
+    const finalMark = totalMark / notes.length;
+  
+    console.log(`Final mark for ${studentName}: ${finalMark}`);
+  }

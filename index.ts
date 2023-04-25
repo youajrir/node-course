@@ -1,7 +1,7 @@
 import * as yargs from 'yargs';
 import { Student } from './models/Student';
 import { Subject } from './models/Subject';
-import { addStudents, addSubjects, addMarkForStudent, updateSubject, deleteSubject, listMarks, deleteMark } from './app';
+import { addStudents, addSubjects, addMarkForStudent, updateSubject, deleteSubject, listMarks, deleteMark, calculateFinalMark} from './app';
 
 //add students
 // to run the command via terminal example : 
@@ -160,6 +160,38 @@ yargs.command({
     handler(argv) {
         const subject = new Subject(argv.toDeleteSubjectName);
         deleteSubject(subject);
+    }
+});
+
+// List All Marks Of Each Subject
+// to run the command via terminal example : 
+// node index.js viewAllMarksOfEachSubject 
+yargs.command({
+    command: 'viewAllMarksOfEachSubject',
+    describe: 'List All Marks Of Each Subject',
+    handler(argv) {
+        const subject = new Subject(argv.toDeleteSubjectName);
+        deleteSubject(subject);
+    }
+});
+
+
+//Calculate the final mark
+// to run the command via terminal example : 
+// node index.js calculateFinalMark --name John 
+
+yargs.command({
+    command: 'calculateFinalMark',
+    describe: 'Calculate the final mark of a student',
+    builder: {
+        name: {
+            describe: 'Student name',
+            demandOption: true,
+            type: 'string'
+        }
+    },
+    handler(argv) {
+        calculateFinalMark(argv.name);
     }
 });
 yargs.parse();
