@@ -1,132 +1,164 @@
 import * as fs from 'fs';
+import { MongoClient, MongoClientOptions, Db } from 'mongodb';
 import { Student } from './models/Student';
 import { Note } from './models/Note';
 import { Subject } from './models/Subject';
+import { connectToDatabase } from './mongodb';
+
 
 //add students
-export function addStudents(student: Student) {
-    const studentsData = fs.readFileSync('students.json');
+export async function addStudents(student: Student) {
+    const [client, db] = await connectToDatabase();
+
     try {
-        const students = JSON.parse(studentsData.toString());
-        for (let i = 0; i < students.length; i++) {
-            if (students[i].name === student.name) {
-                console.log(`${student.name} already exists in students.json`);
-                return;
-            }
+        const studentsCollection = db.collection('students');
+        const existingStudent = await studentsCollection.findOne({ name: student.name });
+
+
+        if (existingStudent != undefined) {
+            console.log('Student already exists');
+            return;
+        } else {
+            const newStudent = await studentsCollection.insertOne(student);
+            console.log('New student added: ' + student.name);
         }
-        students.push(student);
-        fs.writeFileSync('students.json', JSON.stringify(students));
     } catch (e) {
-        console.log('Error parsing students.json:', e);
+        console.log('Error while trying to retrieve student data from the database:', e);
+        throw e;
+    } finally {
+        if (client) {
+            await client.close();
+        }
     }
 }
 
+
 //add subjects
-export function addSubjects(subject: Subject) {
-    const subjectsData = fs.readFileSync('subjects.json');
+export async function addSubjects(subject: Subject) {
+    const [client, db] = await connectToDatabase();
+
     try {
-        const subjects = JSON.parse(subjectsData.toString());
-        for (let i = 0; i < subjects.length; i++) {
-            if (subjects[i].subjectName === subject.subjectName) {
-                console.log(`${subject.subjectName} already exists in subjects.json`);
-                return;
-            }
+        const subjectsCollection = db.collection('subjects');
+        const existingSubject = await subjectsCollection.findOne({ subjectName: subject.subjectName });
+
+        if (existingSubject != undefined) {
+            console.log('Subject already exists');
+            return;
+        } else {
+            const newSubject = await subjectsCollection.insertOne(subject);
+            console.log('New subject added: ' + subject.subjectName);
         }
-        subjects.push(subject);
-        fs.writeFileSync('subjects.json', JSON.stringify(subjects));
     } catch (e) {
-        console.log('Error parsing subjects.json:', e);
+        console.log('Error while trying to retrieve subject data from the database:', e);
+        throw e;
+    } finally {
+        if (client) {
+            await client.close();
+        }
     }
 }
 
 //add mark for student
-export function addMarkForStudent(studentName: String, subjectName: String, grade: number) {
-    const studentsData = fs.readFileSync('students.json');
-    const subjectsData = fs.readFileSync('subjects.json');
-
-
-    const students = JSON.parse(studentsData.toString());
-    const subjects = JSON.parse(subjectsData.toString());
+export async function addMarkForStudent(studentName: string, subjectName: string, grade: number) {
+    const [client, db] = await connectToDatabase();
 
     try {
-        const filteredStudent = students.find((s: Student) => s.name === studentName)
-        if (filteredStudent === undefined) {
-            console.log('student doesnt exist');
-            return
+        const studentsCollection = db.collection('students');
+        const subjectsCollection = db.collection('subjects');
+
+        const student = await studentsCollection.findOne({ name: studentName });
+        if (!student) {
+            console.log('Student not found');
+            return;
         }
 
-        const filteredSubject = subjects.find((s: Subject) => s.subjectName === subjectName)
-        if (filteredSubject === undefined) {
-            console.log('subject doesnt exist');
-            return
+        const subject = await subjectsCollection.findOne({ subjectName });
+        if (!subject) {
+            console.log('Subject not found');
+            return;
         }
 
-        const existingNoteIndex = filteredStudent.notes.findIndex((note: Note) => note.subject.subjectName === subjectName);
-        if (existingNoteIndex !== -1) {
-            const oldNote = filteredStudent.notes[existingNoteIndex];
-            filteredStudent.notes = filteredStudent.notes.filter((note: Note) => note !== oldNote);
-        }
+        student.notes = Array.from(student.notes);
 
-        const newNote = new Note(filteredSubject, grade);
-        filteredStudent.notes.push(newNote)
+        const addNote = new Note(new Subject(subjectName), grade);
+        student.notes.push(addNote);
 
-        const StudentsToKeep = students.filter((student: Student) => student.name !== studentName)
-        console.log(filteredStudent);
+        await studentsCollection.updateOne({ name: student.name }, { $set: { notes: student.notes } });
+        
 
-        StudentsToKeep.push(filteredStudent)
-
-
-
-        fs.writeFileSync('students.json', JSON.stringify(StudentsToKeep));
-
+        console.log(`Grade added for student ${studentName}`);
     } catch (error) {
-        console.log('error when trying to add grade to student' + error);
+        console.log(`Error adding grade for student ${studentName}: ${error}`);
+    } finally {
+        if (client) {
+            await client.close();
+        }
     }
-
-
 }
+
 
 
 //List marks
-export function listMarks(studentName: string) {
-    const studentsData = fs.readFileSync('students.json');
-    const students = JSON.parse(studentsData.toString());
-
-    const filteredStudent = students.find((s: Student) => s.name === studentName)
-    if (filteredStudent === undefined) {
-        console.log('student doesnt exist');
-        return
+export async function listMarks(studentName: string) {
+    const [client, db] = await connectToDatabase();
+  
+    try {
+      const studentsCollection = db.collection('students');
+      const filteredStudent = await studentsCollection.findOne({ name: studentName });
+  
+      if (filteredStudent === null) {
+        console.log('Student does not exist');
+        return;
+      }
+  
+      console.log(filteredStudent.notes);
+    } catch (e) {
+      console.log('Error while trying to list marks for a student:', e);
+      throw e;
+    } finally {
+      if (client) {
+        await client.close();
+      }
     }
+  }
 
-    console.log(filteredStudent.notes)
-}
-
-//Delete mark
-export function deleteMark(studentName: string, subjectName: string) {
-
-    const studentsData = fs.readFileSync('students.json');
-    const students = JSON.parse(studentsData.toString());
-    const StudentsToKeep = students.filter((student: Student) => student.name !== studentName)
-    const filteredStudent = students.find((s: Student) => s.name === studentName)
-    debugger
-    if (filteredStudent === undefined) {
-        console.log('student doesnt exist');
-        return
-    }
-
-    const newNotes: Note[] = [];
-    filteredStudent.notes.forEach((note: Note) => {
+// Delete a mark for a student
+export async function deleteMark(studentName: string, subjectName: string) {
+    const [client, db] = await connectToDatabase();
+  
+    try {
+      const studentsCollection = db.collection('students');
+      const filteredStudent = await studentsCollection.findOne({ name: studentName });
+  
+      if (filteredStudent === null) {
+        console.log('Student does not exist');
+        return;
+      }
+  
+      const newNotes: Note[] = [];
+      filteredStudent.notes.forEach((note: Note) => {
         if (note.subject.subjectName !== subjectName) {
-            newNotes.push(note)
+          newNotes.push(note);
         }
-    });
-
-    const updatedStudent = new Student(filteredStudent.name, filteredStudent.age, newNotes)
-
-    StudentsToKeep.push(updatedStudent);
-    fs.writeFileSync('students.json', JSON.stringify(StudentsToKeep));
-
-}
+      });
+  
+      const updatedStudent = {
+        ...filteredStudent,
+        notes: newNotes
+      };
+  
+      const result = await studentsCollection.updateOne({ name: studentName }, { $set: updatedStudent });
+  
+      console.log(`${result.modifiedCount} mark(s) deleted for ${studentName}`);
+    } catch (e) {
+      console.log('Error while trying to delete a mark:', e);
+      throw e;
+    } finally {
+      if (client) {
+        await client.close();
+      }
+    }
+  }
 
 //update subject
 export function updateSubject(oldSubject: Subject, newSubject: Subject) {
@@ -171,37 +203,37 @@ export function viewAllMarksOfEachSubject() {
     const subjectsData = fs.readFileSync('subjects.json');
     const students = JSON.parse(studentsData.toString());
     const subjects = JSON.parse(subjectsData.toString());
-  
+
     subjects.forEach((subject: Subject) => {
-      console.log(`Marks for ${subject.subjectName}:`);
-      students.forEach((student: Student) => {
-        const note = student.notes.find((note: Note) => note.subject.subjectName === subject.subjectName);
-        if (note) {
-          console.log(`${student.name}: ${note.grade}`);
-        } else {
-          console.log(`${student.name}: N/A`);
-        }
-      });
-      console.log();
+        console.log(`Marks for ${subject.subjectName}:`);
+        students.forEach((student: Student) => {
+            const note = student.notes.find((note: Note) => note.subject.subjectName === subject.subjectName);
+            if (note) {
+                console.log(`${student.name}: ${note.grade}`);
+            } else {
+                console.log(`${student.name}: N/A`);
+            }
+        });
+        console.log();
     });
-  }
-  
+}
+
 
 //Calculate the final mark
 // Calculate final mark for a student
 export function calculateFinalMark(studentName: string) {
     const studentsData = fs.readFileSync('students.json');
     const students = JSON.parse(studentsData.toString());
-  
+
     const filteredStudent = students.find((s: Student) => s.name === studentName);
     if (filteredStudent === undefined) {
-      console.log('Student does not exist');
-      return;
+        console.log('Student does not exist');
+        return;
     }
-  
+
     const notes = filteredStudent.notes;
-    const totalMark = notes.reduce((acc : number, note:Note) => acc + note.grade, 0);
+    const totalMark = notes.reduce((acc: number, note: Note) => acc + note.grade, 0);
     const finalMark = totalMark / notes.length;
-  
+
     console.log(`Final mark for ${studentName}: ${finalMark}`);
-  }
+}

@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/youajrir/node-course#readme",
   "dependencies": {
+    "mongodb": "^5.3.0",
     "typescript": "^5.0.4",
     "validator": "^13.9.0",
     "yargs": "^17.7.1"
